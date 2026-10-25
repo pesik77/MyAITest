@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chemické prvky</title>
+<meta name="description" content="Procvičování prvků skupin 1.A–4.A periodické tabulky (české a latinské názvy).">
+<meta name="theme-color" content="#2b4c9b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f6f7fb; --card: #fff; --text: #1d2233; --muted: #636a80; --line: #dde1ec;
+    --accent: #2b4c9b; --ok: #1f8a4c; --bad: #c0392b;
+    --g1: #ffe3e0; --g2: #fff1d6; --g3: #e1f3e6; --g4: #e1ecfb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161d; --card: #1e212b; --text: #e8eaf2; --muted: #9aa1b5; --line: #2f3442;
+      --accent: #7e9ff0; --ok: #4cc283; --bad: #ef6f62;
+      --g1: #4a2723; --g2: #4a3a1c; --g3: #1f3d2a; --g4: #1f2f4d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 16px; text-align: center; }
+  h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  header p { margin: 0; color: var(--muted); font-size: .9rem; }
+  nav { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; padding: 0 16px 12px; }
+  nav button { border: 1px solid var(--line); background: var(--card); color: var(--text);
+    padding: 8px 14px; border-radius: 999px; font: inherit; cursor: pointer; }
+  nav button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  main { max-width: 820px; margin: 0 auto; padding: 0 16px 40px; }
+  [hidden] { display: none !important; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .group h2 { margin: 0 0 4px; font-size: 1.1rem; }
+  .mnemo { margin: 0 0 12px; font-style: italic; color: var(--muted); }
+  .mnemo b { color: var(--accent); font-style: normal; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+  .el { border-radius: 10px; padding: 8px; text-align: center; border: 1px solid var(--line); }
+  .el .sym { font-size: 1.7rem; font-weight: 700; line-height: 1.1; }
+  .el .z { font-size: .75rem; color: var(--muted); text-align: left; }
+  .el .cz { font-weight: 600; }
+  .el .la { font-size: .85rem; color: var(--muted); font-style: italic; }
+  .g1 { background: var(--g1); } .g2 { background: var(--g2); } .g3 { background: var(--g3); } .g4 { background: var(--g4); }
+  .note { font-size: .95rem; }
+  label.opt { display: inline-flex; align-items: center; gap: 6px; margin: 4px 12px 4px 0; cursor: pointer; }
+  select, input[type=text] { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); }
+  .settings { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+  .question { text-align: center; padding: 10px 0; }
+  .question .prompt { color: var(--muted); font-size: .95rem; }
+  .question .big { font-size: 2.6rem; font-weight: 700; margin: 6px 0; word-break: break-word; }
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .answers button, .btn { font: inherit; padding: 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); cursor: pointer; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .answers button.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .answers button.bad { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .typed { display: flex; gap: 8px; }
+  .typed input { flex: 1; min-width: 0; }
+  .feedback { min-height: 1.6em; text-align: center; margin: 10px 0 0; font-weight: 600; }
+  .feedback.ok { color: var(--ok); } .feedback.bad { color: var(--bad); }
+  .stats { display: flex; justify-content: center; gap: 20px; color: var(--muted); font-size: .9rem; margin-top: 10px; }
+  .card { perspective: 1000px; height: 220px; cursor: pointer; margin: 6px 0 12px; }
+  .card-inner { position: relative; width: 100%; height: 100%; transition: transform .5s; transform-style: preserve-3d; }
+  .card.flipped .card-inner { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; border-radius: 14px; border: 1px solid var(--line); backface-visibility: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 12px; }
+  .back { transform: rotateY(180deg); }
+  .face .big { font-size: 3rem; font-weight: 700; }
+  .face .sub { color: var(--muted); }
+  .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .order-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; margin: 8px 0; }
+  .chip { font: inherit; font-weight: 700; font-size: 1.2rem; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; }
+  .chip.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .chip.bad { background: var(--bad); color: #fff; border-color: var(--bad); }
+  @media (max-width: 480px) { .question .big { font-size: 2rem; } .answers { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚗️ Chemické prvky</h1>
+  <p>Skupiny 1.A – 4.A periodické tabulky · české a latinské názvy</p>
+</header>
+<nav>
+  <button data-tab="learn" class="active">📖 Přehled</button>
+  <button data-tab="cards">🃏 Kartičky</button>
+  <button data-tab="quiz">❓ Kvíz</button>
+  <button data-tab="order">🔢 Pořadí</button>
+</nav>
+<main>
+  <section id="learn"></section>
+
+  <section id="cards" hidden>
+    <div class="panel">
+      <div class="settings">
+        <label>Skupina <select class="groupSel" id="cardGroup"></select></label>
+        <label>Přední strana
+          <select id="cardFront">
+            <option value="sym">Značka</option>
+            <option value="cz">Český název</option>
+            <option value="la">Latinský název</option>
+          </select>
+        </label>
+      </div>
+      <div class="card" id="card" title="Klepni pro otočení">
+        <div class="card-inner">
+          <div class="face front"><div class="big" id="cardFrontText"></div><div class="sub">klepni pro otočení</div></div>
+          <div class="face back"><div class="big" id="cardSym"></div><div><b id="cardCz"></b></div><div class="sub"><i id="cardLa"></i></div><div class="sub" id="cardGrp"></div></div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="cardPrev">← Předchozí</button>
+        <button class="btn primary" id="cardNext">Další →</button>
+      </div>
+      <div class="stats"><span id="cardPos"></span></div>
+    </div>
+  </section>
+
+  <section id="quiz" hidden>
+    <div class="panel">
+      <div class="settings">
+        <label>Skupina <select class="groupSel" id="quizGroup"></select></label>
+        <label>Otázka
+          <select id="quizMode">
+            <option value="mix">Vše mix</option>
+            <option value="sym-cz">Značka → český název</option>
+            <option value="sym-la">Značka → latinský název</option>
+            <option value="cz-sym">Český název → značka</option>
+            <option value="la-sym">Latinský název → značka</option>
+            <option value="cz-la">Český → latinský název</option>
+            <option value="sym-grp">Značka → skupina</option>
+          </select>
+        </label>
+        <label class="opt"><input type="checkbox" id="quizTyped"> psát odpověď</label>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="question">
+        <div class="prompt" id="qPrompt"></div>
+        <div class="big" id="qText"></div>
+      </div>
+      <div class="answers" id="qAnswers"></div>
+      <form class="typed" id="qTyped" hidden autocomplete="off">
+        <input type="text" id="qInput" placeholder="Napiš odpověď…" autocapitalize="off" spellcheck="false">
+        <button class="btn primary" type="submit">OK</button>
+      </form>
+      <p class="feedback" id="qFeedback"></p>
+      <div class="row"><button class="btn" id="qNext" hidden>Další otázka →</button></div>
+      <div class="stats">
+        <span>Správně: <b id="sOk">0</b></span>
+        <span>Špatně: <b id="sBad">0</b></span>
+        <span>Série: <b id="sStreak">0</b></span>
+        <span>Rekord: <b id="sBest">0</b></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="order" hidden>
+    <div class="panel">
+      <p style="margin-top:0">Seřaď prvky skupiny shora dolů (jak jdou v tabulce). Pomůže ti básnička. 😉</p>
+      <div class="settings"><label>Skupina <select id="orderGroup"></select></label></div>
+      <p class="mnemo" id="orderHint" hidden></p>
+      <div class="order-list" id="orderPicked"></div>
+      <div class="order-list" id="orderPool"></div>
+      <p class="feedback" id="orderFeedback"></p>
+      <div class="row">
+        <button class="btn" id="orderHintBtn">💡 Nápověda</button>
+        <button class="btn" id="orderReset">↺ Znovu</button>
+        <button class="btn primary" id="orderNew">Jiná skupina →</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const GROUPS = [
+  { id: "1A", name: "1.A – alkalické kovy (+ vodík)",
+    mnemo: "Hanu líbal na kolena robustní cestář Franz",
+    els: [
+      ["H", "vodík", "Hydrogenium"], ["Li", "lithium", "Lithium"], ["Na", "sodík", "Natrium"],
+      ["K", "draslík", "Kalium"], ["Rb", "rubidium", "Rubidium"], ["Cs", "cesium", "Caesium"],
+      ["Fr", "francium", "Francium"] ] },
+  { id: "2A", name: "2.A – kovy alkalických zemin",
+    mnemo: "Běžela Magda canonem, srazila balvan ramenem",
+    els: [
+      ["Be", "beryllium", "Beryllium"], ["Mg", "hořčík", "Magnesium"], ["Ca", "vápník", "Calcium"],
+      ["Sr", "stroncium", "Strontium"], ["Ba", "baryum", "Barium"], ["Ra", "radium", "Radium"] ] },
+  { id: "3A", name: "3.A – triely",
+    mnemo: "Bystrý Alfons Gablem indiána tloukl",
+    els: [
+      ["B", "bor", "Borum"], ["Al", "hliník", "Aluminium"], ["Ga", "gallium", "Gallium"],
+      ["In", "indium", "Indium"], ["Tl", "thallium", "Thallium"] ] },
+  { id: "4A", name: "4.A – tetrely",
+    mnemo: "Co si Gertruda snědla? Plombu.",
+    els: [
+      ["C", "uhlík", "Carboneum"], ["Si", "křemík", "Silicium"], ["Ge", "germanium", "Germanium"],
+      ["Sn", "cín", "Stannum"], ["Pb", "olovo", "Plumbum"] ] },
+];
+// Alternative accepted spellings for typed answers
+const ALT = { "Carboneum": ["carbonium"], "Barium": ["baryum"], "baryum": ["barium"], "cesium": ["caesium"], "Caesium": ["cesium"] };
+
+const ELEMENTS = GROUPS.flatMap(g => g.els.map(([sym, cz, la], i) => ({ sym, cz, la, grp: g.id, pos: i })));
+const FIELD_LABEL = { sym: "značka", cz: "český název", la: "latinský název", grp: "skupina" };
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = s => s.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("prvky." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("prvky." + k, JSON.stringify(v)); } catch {} },
+};
+
+// Highlight the starting letters of each word in the mnemonic
+function mnemoHtml(text) {
+  return text.split(" ").map(w => {
+    const m = w.match(/^([^\p{L}]*)(\p{L})(.*)$/u);
+    return m ? `${m[1]}<b>${m[2]}</b>${m[3]}` : w;
+  }).join(" ");
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("active", x === b));
+  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== b.dataset.tab);
+  store.set("tab", b.dataset.tab);
+}));
+
+/* ---------- Learn ---------- */
+$("learn").innerHTML = GROUPS.map((g, gi) => `
+  <div class="panel group">
+    <h2>${g.name}</h2>
+    <p class="mnemo">„${mnemoHtml(g.mnemo)}“</p>
+    <div class="grid">${g.els.map(([s, cz, la]) => `
+      <div class="el g${gi + 1}"><div class="z">${g.id}</div><div class="sym">${s}</div><div class="cz">${cz}</div><div class="la">${la}</div></div>`).join("")}
+    </div>
+  </div>`).join("") + `
+  <div class="panel note">
+    <b>💡 Zapamatuj si:</b> latinský název často vysvětlí „divnou“ značku –
+    <b>Na</b> = <i>Natrium</i> (sodík), <b>K</b> = <i>Kalium</i> (draslík),
+    <b>Mg</b> = <i>Magnesium</i> (hořčík), <b>Ca</b> = <i>Calcium</i> (vápník),
+    <b>Si</b> = <i>Silicium</i> (křemík), <b>Sn</b> = <i>Stannum</i> (cín), <b>Pb</b> = <i>Plumbum</i> (olovo).
+  </div>`;
+
+/* ---------- Group selects ---------- */
+const groupOptions = `<option value="all">Všechny</option>` + GROUPS.map(g => `<option value="${g.id}">${g.id}</option>`).join("");
+document.querySelectorAll(".groupSel").forEach(s => s.innerHTML = groupOptions);
+const pool = g => g === "all" ? ELEMENTS : ELEMENTS.filter(e => e.grp === g);
+
+/* ---------- Flashcards ---------- */
+let deck = [], deckPos = 0;
+function newDeck() { deck = shuffle(pool($("cardGroup").value)); deckPos = 0; showCard(); }
+function showCard() {
+  const e = deck[deckPos];
+  $("card").classList.remove("flipped");
+  $("cardFrontText").textContent = e[$("cardFront").value];
+  $("cardSym").textContent = e.sym; $("cardCz").textContent = e.cz; $("cardLa").textContent = e.la;
+  $("cardGrp").textContent = "skupina " + e.grp;
+  $("cardPos").textContent = `${deckPos + 1} / ${deck.length}`;
+}
+$("card").addEventListener("click", () => $("card").classList.toggle("flipped"));
+$("cardNext").addEventListener("click", () => { if (++deckPos >= deck.length) newDeck(); else showCard(); });
+$("cardPrev").addEventListener("click", () => { if (deckPos > 0) { deckPos--; showCard(); } });
+$("cardGroup").addEventListener("change", newDeck);
+$("cardFront").addEventListener("change", showCard);
+
+/* ---------- Quiz ---------- */
+const MODES = ["sym-cz", "sym-la", "cz-sym", "la-sym", "cz-la", "sym-grp"];
+let q = null, answered = false, last = null;
+const stats = { ok: 0, bad: 0, streak: 0, best: store.get("best", 0) };
+
+function renderStats() {
+  $("sOk").textContent = stats.ok; $("sBad").textContent = stats.bad;
+  $("sStreak").textContent = stats.streak; $("sBest").textContent = stats.best;
+}
+function nextQuestion() {
+  const list = pool($("quizGroup").value);
+  let mode = $("quizMode").value;
+  if (mode === "mix") mode = MODES[Math.floor(Math.random() * MODES.length)];
+  const [from, to] = mode.split("-");
+  let el;
+  do { el = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && el === last);
+  last = el;
+  q = { el, from, to, answer: el[to] };
+  answered = false;
+
+  $("qPrompt").textContent = `${FIELD_LABEL[from]} → ${FIELD_LABEL[to]}?`;
+  $("qText").textContent = el[from];
+  $("qFeedback").textContent = ""; $("qFeedback").className = "feedback";
+  $("qNext").hidden = true;
+
+  const typed = $("quizTyped").checked && to !== "grp";
+  $("qTyped").hidden = !typed; $("qAnswers").hidden = typed;
+  if (typed) { $("qInput").value = ""; $("qInput").disabled = false; $("qInput").focus(); return; }
+
+  let opts;
+  if (to === "grp") opts = GROUPS.map(g => g.id);
+  else {
+    // Prefer distractors from the same group, fill from the rest
+    const same = shuffle(ELEMENTS.filter(e => e !== el && e.grp === el.grp));
+    const other = shuffle(ELEMENTS.filter(e => e !== el && e.grp !== el.grp));
+    opts = shuffle([el, ...same.slice(0, 2), ...other].slice(0, 4)).map(e => e[to]);
+  }
+  $("qAnswers").innerHTML = "";
+  opts.forEach(o => {
+    const b = document.createElement("button");
+    b.textContent = o;
+    b.addEventListener("click", () => {
+      if (answered) return;
+      const ok = o === q.answer;
+      b.classList.add(ok ? "ok" : "bad");
+      if (!ok) [...$("qAnswers").children].find(x => x.textContent === q.answer).classList.add("ok");
+      finish(ok);
+    });
+    $("qAnswers").appendChild(b);
+  });
+}
+function finish(ok, note = "") {
+  answered = true;
+  if (ok) { stats.ok++; stats.streak++; if (stats.streak > stats.best) { stats.best = stats.streak; store.set("best", stats.best); } }
+  else { stats.bad++; stats.streak = 0; }
+  renderStats();
+  const e = q.el;
+  $("qFeedback").className = "feedback " + (ok ? "ok" : "bad");
+  $("qFeedback").innerHTML = (ok ? "✔ Správně! " : "✘ Chyba. ") + note +
+    `<br><span style="font-weight:400">${e.sym} – ${e.cz} – <i>${e.la}</i> (${e.grp})</span>`;
+  $("qNext").hidden = false; $("qNext").focus();
+}
+$("qTyped").addEventListener("submit", ev => {
+  ev.preventDefault();
+  if (answered) { nextQuestion(); return; }
+  const val = $("qInput").value; if (!val.trim()) return;
+  const accepted = [q.answer, ...(ALT[q.answer] || [])];
+  let ok, note = "";
+  if (q.to === "sym") ok = accepted.some(a => val.trim().toLowerCase() === a.toLowerCase());
+  else {
+    const exact = accepted.some(a => val.trim().toLowerCase() === a.toLowerCase());
+    ok = exact || accepted.some(a => norm(val) === norm(a));
+    if (ok && !exact) note = `(pozor na diakritiku: <b>${q.answer}</b>)`;
+  }
+  if (ok && q.to === "sym" && val.trim() !== q.answer) note = `(značka se píše <b>${q.answer}</b>)`;
+  $("qInput").disabled = true;
+  finish(ok, note);
+});
+$("qNext").addEventListener("click", nextQuestion);
+["quizGroup", "quizMode", "quizTyped"].forEach(id => $(id).addEventListener("change", nextQuestion));
+document.addEventListener("keydown", ev => {
+  if ($("quiz").hidden) return;
+  if (ev.key === "Enter" && answered && document.activeElement !== $("qInput")) { ev.preventDefault(); nextQuestion(); }
+  if (!answered && !$("qAnswers").hidden && /^[1-4]$/.test(ev.key)) $("qAnswers").children[ev.key - 1]?.click();
+});
+
+/* ---------- Order ---------- */
+$("orderGroup").innerHTML = GROUPS.map(g => `<option value="${g.id}">${g.id}</option>`).join("");
+let orderGroup, picked;
+function startOrder() {
+  orderGroup = GROUPS.find(g => g.id === $("orderGroup").value);
+  picked = [];
+  $("orderHint").hidden = true;
+  $("orderHint").innerHTML = "„" + mnemoHtml(orderGroup.mnemo) + "“";
+  $("orderFeedback").textContent = ""; $("orderFeedback").className = "feedback";
+  $("orderPicked").innerHTML = "";
+  $("orderPool").innerHTML = "";
+  shuffle(orderGroup.els).forEach(([sym, cz]) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = sym; b.title = cz;
+    b.addEventListener("click", () => pick(b, sym));
+    $("orderPool").appendChild(b);
+  });
+}
+function pick(b, sym) {
+  if (b.parentNode !== $("orderPool")) return;
+  const correct = orderGroup.els[picked.length][0] === sym;
+  if (!correct) {
+    b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 500);
+    $("orderFeedback").className = "feedback bad";
+    $("orderFeedback").textContent = `${sym} sem ještě nepatří.`;
+    return;
+  }
+  picked.push(sym); b.classList.add("ok");
+  $("orderPicked").appendChild(b);
+  $("orderFeedback").textContent = "";
+  if (picked.length === orderGroup.els.length) {
+    $("orderFeedback").className = "feedback ok";
+    $("orderFeedback").textContent = "🎉 Výborně, skupina " + orderGroup.id + " je seřazená!";
+  }
+}
+$("orderGroup").addEventListener("change", startOrder);
+$("orderReset").addEventListener("click", startOrder);
+$("orderHintBtn").addEventListener("click", () => $("orderHint").hidden = false);
+$("orderNew").addEventListener("click", () => {
+  const i = GROUPS.findIndex(g => g.id === $("orderGroup").value);
+  $("orderGroup").value = GROUPS[(i + 1) % GROUPS.length].id; startOrder();
+});
+
+/* ---------- Init ---------- */
+newDeck(); renderStats(); nextQuestion(); startOrder();
+const savedTab = store.get("tab", "learn");
+document.querySelector(`nav button[data-tab="${savedTab}"]`)?.click();
+
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>

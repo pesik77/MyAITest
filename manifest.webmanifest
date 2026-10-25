@@ -1,0 +1,10 @@
+{
+  "name": "Chemické prvky – procvičování",
+  "short_name": "Prvky",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#2b4c9b",
+  "lang": "cs",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -1,5 +1,5 @@
 // Offline cache: all app files are precached on install
-const CACHE = "prvky-v1";
+const CACHE = "prvky-v2";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", e => {

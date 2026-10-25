@@ -48,6 +48,10 @@
   label.opt { display: inline-flex; align-items: center; gap: 6px; margin: 4px 12px 4px 0; cursor: pointer; }
   select, input[type=text] { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
     background: var(--bg); color: var(--text); }
+  .checks { border: 0; padding: 0; margin: 0 0 10px; }
+  .checks legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
+  .link { font: inherit; font-size: .85rem; font-weight: 400; background: none; border: 0; padding: 0 0 0 6px;
+    color: var(--accent); text-decoration: underline; cursor: pointer; }
   .settings { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
   .question { text-align: center; padding: 10px 0; }
   .question .prompt { color: var(--muted); font-size: .95rem; }
@@ -122,21 +126,13 @@
 
   <section id="quiz" hidden>
     <div class="panel">
-      <div class="settings">
-        <label>Skupina <select class="groupSel" id="quizGroup"></select></label>
-        <label>Otázka
-          <select id="quizMode">
-            <option value="mix">Vše mix</option>
-            <option value="sym-cz">Značka → český název</option>
-            <option value="sym-la">Značka → latinský název</option>
-            <option value="cz-sym">Český název → značka</option>
-            <option value="la-sym">Latinský název → značka</option>
-            <option value="cz-la">Český → latinský název</option>
-            <option value="sym-grp">Značka → skupina</option>
-          </select>
-        </label>
-        <label class="opt"><input type="checkbox" id="quizTyped"> psát odpověď</label>
-      </div>
+      <fieldset class="checks" id="quizGroups">
+        <legend>Skupiny <button type="button" class="link" data-all="quizGroups">vše</button></legend>
+      </fieldset>
+      <fieldset class="checks" id="quizModes">
+        <legend>Typy otázek <button type="button" class="link" data-all="quizModes">vše</button></legend>
+      </fieldset>
+      <label class="opt"><input type="checkbox" id="quizTyped"> psát odpověď</label>
     </div>
     <div class="panel">
       <div class="question">
@@ -267,8 +263,33 @@ $("cardGroup").addEventListener("change", newDeck);
 $("cardFront").addEventListener("change", showCard);
 
 /* ---------- Quiz ---------- */
-const MODES = ["sym-cz", "sym-la", "cz-sym", "la-sym", "cz-la", "sym-grp"];
+const MODES = {
+  "sym-cz": "Značka → český název", "sym-la": "Značka → latinský název",
+  "cz-sym": "Český název → značka", "la-sym": "Latinský název → značka",
+  "cz-la": "Český → latinský název", "sym-grp": "Značka → skupina",
+};
 let q = null, answered = false, last = null;
+
+// Checkbox lists; at least one box must stay checked, selection is remembered
+function buildChecks(id, items, saved) {
+  const box = $(id);
+  items.forEach(([value, label]) => box.insertAdjacentHTML("beforeend",
+    `<label class="opt"><input type="checkbox" value="${value}" ${!saved || saved.includes(value) ? "checked" : ""}> ${label}</label>`));
+  if (!checked(id).length) box.querySelectorAll("input").forEach(i => i.checked = true);
+  box.addEventListener("change", ev => {
+    if (!checked(id).length) ev.target.checked = true;
+    store.set(id, checked(id)); nextQuestion();
+  });
+}
+const checked = id => [...$(id).querySelectorAll("input:checked")].map(i => i.value);
+const pick1 = a => a[Math.floor(Math.random() * a.length)];
+buildChecks("quizGroups", GROUPS.map(g => [g.id, g.id]), store.get("quizGroups", null));
+buildChecks("quizModes", Object.entries(MODES), store.get("quizModes", null));
+document.querySelectorAll("[data-all]").forEach(b => b.addEventListener("click", () => {
+  const id = b.dataset.all;
+  $(id).querySelectorAll("input").forEach(i => i.checked = true);
+  store.set(id, checked(id)); nextQuestion();
+}));
 const stats = { ok: 0, bad: 0, streak: 0, best: store.get("best", 0) };
 
 function renderStats() {
@@ -276,12 +297,11 @@ function renderStats() {
   $("sStreak").textContent = stats.streak; $("sBest").textContent = stats.best;
 }
 function nextQuestion() {
-  const list = pool($("quizGroup").value);
-  let mode = $("quizMode").value;
-  if (mode === "mix") mode = MODES[Math.floor(Math.random() * MODES.length)];
-  const [from, to] = mode.split("-");
+  const groups = checked("quizGroups");
+  const list = ELEMENTS.filter(e => groups.includes(e.grp));
+  const [from, to] = pick1(checked("quizModes")).split("-");
   let el;
-  do { el = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && el === last);
+  do { el = pick1(list); } while (list.length > 1 && el === last);
   last = el;
   q = { el, from, to, answer: el[to] };
   answered = false;
@@ -345,7 +365,7 @@ $("qTyped").addEventListener("submit", ev => {
   finish(ok, note);
 });
 $("qNext").addEventListener("click", nextQuestion);
-["quizGroup", "quizMode", "quizTyped"].forEach(id => $(id).addEventListener("change", nextQuestion));
+$("quizTyped").addEventListener("change", nextQuestion);
 document.addEventListener("keydown", ev => {
   if ($("quiz").hidden) return;
   if (ev.key === "Enter" && answered && document.activeElement !== $("qInput")) { ev.preventDefault(); nextQuestion(); }

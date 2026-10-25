@@ -101,7 +101,9 @@
   <section id="cards" hidden>
     <div class="panel">
       <div class="settings">
-        <label>Skupina <select class="groupSel" id="cardGroup"></select></label>
+        <fieldset class="checks" id="cardGroups">
+          <legend>Skupiny <button type="button" class="link" data-all="cardGroups">vše</button></legend>
+        </fieldset>
         <label>Přední strana
           <select id="cardFront">
             <option value="sym">Značka</option>
@@ -240,14 +242,31 @@ $("learn").innerHTML = GROUPS.map((g, gi) => `
     <b>Si</b> = <i>Silicium</i> (křemík), <b>Sn</b> = <i>Stannum</i> (cín), <b>Pb</b> = <i>Plumbum</i> (olovo).
   </div>`;
 
-/* ---------- Group selects ---------- */
-const groupOptions = `<option value="all">Všechny</option>` + GROUPS.map(g => `<option value="${g.id}">${g.id}</option>`).join("");
-document.querySelectorAll(".groupSel").forEach(s => s.innerHTML = groupOptions);
-const pool = g => g === "all" ? ELEMENTS : ELEMENTS.filter(e => e.grp === g);
+/* ---------- Checkbox lists ---------- */
+// At least one box must stay checked; the selection is remembered
+function buildChecks(id, items, onChange) {
+  const box = $(id), saved = store.get(id, null);
+  items.forEach(([value, label]) => box.insertAdjacentHTML("beforeend",
+    `<label class="opt"><input type="checkbox" value="${value}" ${!saved || saved.includes(value) ? "checked" : ""}> ${label}</label>`));
+  if (!checked(id).length) box.querySelectorAll("input").forEach(i => i.checked = true);
+  box.addEventListener("change", ev => {
+    if (!checked(id).length) ev.target.checked = true;
+    store.set(id, checked(id)); onChange();
+  });
+}
+const checked = id => [...$(id).querySelectorAll("input:checked")].map(i => i.value);
+const pick1 = a => a[Math.floor(Math.random() * a.length)];
+const groupItems = GROUPS.map(g => [g.id, g.id]);
+const pool = id => { const groups = checked(id); return ELEMENTS.filter(e => groups.includes(e.grp)); };
+document.querySelectorAll("[data-all]").forEach(b => b.addEventListener("click", () => {
+  const box = $(b.dataset.all);
+  box.querySelectorAll("input").forEach(i => i.checked = true);
+  box.dispatchEvent(new Event("change"));
+}));
 
 /* ---------- Flashcards ---------- */
 let deck = [], deckPos = 0;
-function newDeck() { deck = shuffle(pool($("cardGroup").value)); deckPos = 0; showCard(); }
+function newDeck() { deck = shuffle(pool("cardGroups")); deckPos = 0; showCard(); }
 function showCard() {
   const e = deck[deckPos];
   $("card").classList.remove("flipped");
@@ -259,7 +278,7 @@ function showCard() {
 $("card").addEventListener("click", () => $("card").classList.toggle("flipped"));
 $("cardNext").addEventListener("click", () => { if (++deckPos >= deck.length) newDeck(); else showCard(); });
 $("cardPrev").addEventListener("click", () => { if (deckPos > 0) { deckPos--; showCard(); } });
-$("cardGroup").addEventListener("change", newDeck);
+buildChecks("cardGroups", groupItems, newDeck);
 $("cardFront").addEventListener("change", showCard);
 
 /* ---------- Quiz ---------- */
@@ -269,27 +288,8 @@ const MODES = {
   "cz-la": "Český → latinský název", "sym-grp": "Značka → skupina",
 };
 let q = null, answered = false, last = null;
-
-// Checkbox lists; at least one box must stay checked, selection is remembered
-function buildChecks(id, items, saved) {
-  const box = $(id);
-  items.forEach(([value, label]) => box.insertAdjacentHTML("beforeend",
-    `<label class="opt"><input type="checkbox" value="${value}" ${!saved || saved.includes(value) ? "checked" : ""}> ${label}</label>`));
-  if (!checked(id).length) box.querySelectorAll("input").forEach(i => i.checked = true);
-  box.addEventListener("change", ev => {
-    if (!checked(id).length) ev.target.checked = true;
-    store.set(id, checked(id)); nextQuestion();
-  });
-}
-const checked = id => [...$(id).querySelectorAll("input:checked")].map(i => i.value);
-const pick1 = a => a[Math.floor(Math.random() * a.length)];
-buildChecks("quizGroups", GROUPS.map(g => [g.id, g.id]), store.get("quizGroups", null));
-buildChecks("quizModes", Object.entries(MODES), store.get("quizModes", null));
-document.querySelectorAll("[data-all]").forEach(b => b.addEventListener("click", () => {
-  const id = b.dataset.all;
-  $(id).querySelectorAll("input").forEach(i => i.checked = true);
-  store.set(id, checked(id)); nextQuestion();
-}));
+buildChecks("quizGroups", groupItems, nextQuestion);
+buildChecks("quizModes", Object.entries(MODES), nextQuestion);
 const stats = { ok: 0, bad: 0, streak: 0, best: store.get("best", 0) };
 
 function renderStats() {
@@ -297,8 +297,7 @@ function renderStats() {
   $("sStreak").textContent = stats.streak; $("sBest").textContent = stats.best;
 }
 function nextQuestion() {
-  const groups = checked("quizGroups");
-  const list = ELEMENTS.filter(e => groups.includes(e.grp));
+  const list = pool("quizGroups");
   const [from, to] = pick1(checked("quizModes")).split("-");
   let el;
   do { el = pick1(list); } while (list.length > 1 && el === last);

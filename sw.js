@@ -1,5 +1,6 @@
-// Offline cache: all app files are precached on install
-const CACHE = "prvky-v2";
+// Offline support: network first (so updates show up right away),
+// falling back to the cached copy when offline
+const CACHE = "prvky-v3";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", e => {
@@ -14,5 +15,12 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(r => r || fetch(e.request)));
+  e.respondWith(
+    fetch(e.request)
+      .then(r => {
+        if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+        return r;
+      })
+      .catch(() => caches.match(e.request, { ignoreSearch: true }))
+  );
 });

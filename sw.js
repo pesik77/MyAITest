@@ -1,6 +1,6 @@
 // Offline support: network first (so updates show up right away),
 // falling back to the cached copy when offline
-const CACHE = "prvky-v3";
+const CACHE = "prvky-v4";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", e => {

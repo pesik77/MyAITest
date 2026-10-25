@@ -1,6 +1,6 @@
 # Chemické prvky – procvičování
 
-Jednoduchá statická webová aplikace na procvičování prvků skupin **1.A – 4.A**
+Jednoduchá statická webová aplikace na procvičování prvků skupin **1.A – 8.A**
 periodické tabulky (značka, český a latinský název, básničky na zapamatování).
 
 ## Režimy

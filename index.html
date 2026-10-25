@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chemické prvky</title>
-<meta name="description" content="Procvičování prvků skupin 1.A–4.A periodické tabulky (české a latinské názvy).">
+<meta name="description" content="Procvičování prvků skupin 1.A–8.A periodické tabulky (české a latinské názvy).">
 <meta name="theme-color" content="#2b4c9b">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -13,12 +13,14 @@
     --bg: #f6f7fb; --card: #fff; --text: #1d2233; --muted: #636a80; --line: #dde1ec;
     --accent: #2b4c9b; --ok: #1f8a4c; --bad: #c0392b;
     --g1: #ffe3e0; --g2: #fff1d6; --g3: #e1f3e6; --g4: #e1ecfb;
+    --g5: #ece3fb; --g6: #fbe3f1; --g7: #ddf3f3; --g8: #ececec;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #14161d; --card: #1e212b; --text: #e8eaf2; --muted: #9aa1b5; --line: #2f3442;
       --accent: #7e9ff0; --ok: #4cc283; --bad: #ef6f62;
       --g1: #4a2723; --g2: #4a3a1c; --g3: #1f3d2a; --g4: #1f2f4d;
+      --g5: #352a4d; --g6: #4a2340; --g7: #1d3d3d; --g8: #33363d;
     }
   }
   * { box-sizing: border-box; }
@@ -44,6 +46,7 @@
   .el .cz { font-weight: 600; }
   .el .la { font-size: .85rem; color: var(--muted); font-style: italic; }
   .g1 { background: var(--g1); } .g2 { background: var(--g2); } .g3 { background: var(--g3); } .g4 { background: var(--g4); }
+  .g5 { background: var(--g5); } .g6 { background: var(--g6); } .g7 { background: var(--g7); } .g8 { background: var(--g8); }
   .note { font-size: .95rem; }
   label.opt { display: inline-flex; align-items: center; gap: 6px; margin: 4px 12px 4px 0; cursor: pointer; }
   select, input[type=text] { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
@@ -87,7 +90,7 @@
 <body>
 <header>
   <h1>⚗️ Chemické prvky</h1>
-  <p>Skupiny 1.A – 4.A periodické tabulky · české a latinské názvy</p>
+  <p>Skupiny 1.A – 8.A periodické tabulky · české a latinské názvy</p>
 </header>
 <nav>
   <button data-tab="learn" class="active">📖 Přehled</button>
@@ -197,9 +200,30 @@ const GROUPS = [
     els: [
       ["C", "uhlík", "Carboneum"], ["Si", "křemík", "Silicium"], ["Ge", "germanium", "Germanium"],
       ["Sn", "cín", "Stannum"], ["Pb", "olovo", "Plumbum"] ] },
+  { id: "5A", name: "5.A – pniktogeny",
+    mnemo: "Na poli asi sbírají bizony",
+    els: [
+      ["N", "dusík", "Nitrogenium"], ["P", "fosfor", "Phosphorus"], ["As", "arsen", "Arsenicum"],
+      ["Sb", "antimon", "Stibium"], ["Bi", "bismut", "Bismuthum"] ] },
+  { id: "6A", name: "6.A – chalkogeny",
+    mnemo: "Ó, Sněhurko, sedm teplých ponožek!",
+    els: [
+      ["O", "kyslík", "Oxygenium"], ["S", "síra", "Sulphur"], ["Se", "selen", "Selenium"],
+      ["Te", "tellur", "Tellurium"], ["Po", "polonium", "Polonium"] ] },
+  { id: "7A", name: "7.A – halogeny",
+    mnemo: "Franta cloumal bratrem i atletem",
+    els: [
+      ["F", "fluor", "Fluorum"], ["Cl", "chlor", "Chlorum"], ["Br", "brom", "Bromum"],
+      ["I", "jod", "Iodum"], ["At", "astat", "Astatium"] ] },
+  { id: "8A", name: "8.A – vzácné plyny",
+    mnemo: "Helena nese arašídy krokodýlu Xaverovi ráno",
+    els: [
+      ["He", "helium", "Helium"], ["Ne", "neon", "Neon"], ["Ar", "argon", "Argon"],
+      ["Kr", "krypton", "Krypton"], ["Xe", "xenon", "Xenon"], ["Rn", "radon", "Radon"] ] },
 ];
 // Alternative accepted spellings for typed answers
-const ALT = { "Carboneum": ["carbonium"], "Barium": ["baryum"], "baryum": ["barium"], "cesium": ["caesium"], "Caesium": ["cesium"] };
+const ALT = { "Carboneum": ["carbonium"], "Barium": ["baryum"], "baryum": ["barium"], "cesium": ["caesium"], "Caesium": ["cesium"],
+  "Sulphur": ["sulfur"], "Iodum": ["jodum"], "bismut": ["bizmut"], "Bismuthum": ["bismutum"], "tellur": ["telur"], "Astatium": ["astatum"] };
 
 const ELEMENTS = GROUPS.flatMap(g => g.els.map(([sym, cz, la], i) => ({ sym, cz, la, grp: g.id, pos: i })));
 const FIELD_LABEL = { sym: "značka", cz: "český název", la: "latinský název", grp: "skupina" };
@@ -239,7 +263,9 @@ $("learn").innerHTML = GROUPS.map((g, gi) => `
     <b>💡 Zapamatuj si:</b> latinský název často vysvětlí „divnou“ značku –
     <b>Na</b> = <i>Natrium</i> (sodík), <b>K</b> = <i>Kalium</i> (draslík),
     <b>Mg</b> = <i>Magnesium</i> (hořčík), <b>Ca</b> = <i>Calcium</i> (vápník),
-    <b>Si</b> = <i>Silicium</i> (křemík), <b>Sn</b> = <i>Stannum</i> (cín), <b>Pb</b> = <i>Plumbum</i> (olovo).
+    <b>Si</b> = <i>Silicium</i> (křemík), <b>Sn</b> = <i>Stannum</i> (cín), <b>Pb</b> = <i>Plumbum</i> (olovo),
+    <b>N</b> = <i>Nitrogenium</i> (dusík), <b>P</b> = <i>Phosphorus</i> (fosfor), <b>Sb</b> = <i>Stibium</i> (antimon),
+    <b>O</b> = <i>Oxygenium</i> (kyslík), <b>S</b> = <i>Sulphur</i> (síra), <b>I</b> = <i>Iodum</i> (jod).
   </div>`;
 
 /* ---------- Checkbox lists ---------- */

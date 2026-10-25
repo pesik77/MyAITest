@@ -6,7 +6,7 @@ periodické tabulky (značka, český a latinský název, básničky na zapamato
 ## Režimy
 - **Přehled** – tabulka prvků po skupinách s básničkami
 - **Kartičky** – otáčecí kartičky (přední strana: značka / český / latinský název)
-- **Kvíz** – výběr ze 4 možností (klávesy 1–4) nebo psaní odpovědi
+- **Kvíz** – libovolná kombinace skupin a typů otázek; výběr ze 4 možností (klávesy 1–4) nebo psaní odpovědi
 - **Pořadí** – seřazení prvků ve skupině shora dolů
 
 ## Spuštění
